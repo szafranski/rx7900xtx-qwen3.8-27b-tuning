@@ -27,6 +27,9 @@ PY
 )
 if [ -n "$bad" ]; then echo "$bad"; note "json" "FAIL"; fail=1; else note "json" "ok"; fi
 
+if python3 scripts/gsq_summary.py >/dev/null; then note "September data" "ok"
+else note "September data" "FAIL"; fail=1; fi
+
 # 2. scripts parse
 syn=0
 for f in scripts/*.sh; do bash -n "$f" || { note "syntax $f" "FAIL"; syn=1; }; done
@@ -64,7 +67,12 @@ pat="$pat"'|[A-Za-z0-9-]+\.lan\b'
 pat="$pat"'|\b(10(\.[0-9]{1,3}){3}|192\.168(\.[0-9]{1,3}){2}|172\.(1[6-9]|2[0-9]|3[01])(\.[0-9]{1,3}){2})\b'
 pat="$pat"'|([0-9a-fA-F]{2}:){5}[0-9a-fA-F]{2}|[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}'
 pat="$pat"'|[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}'
-hits=$(grep -rInE "$pat" . --exclude-dir=.git --exclude=check.sh || true)
+# Elapsed log clocks can look like private IPs (four dotted numeric groups).
+# Strip only a leading clock in a .log hit, then rescan the rest of that line.
+# An actual address later on the same line must still fail this check.
+hits=$(grep -rInE "$pat" . --exclude-dir=.git --exclude=check.sh |
+  sed -E 's/^([^:]+\.log:[0-9]+:)[0-9]+(\.[0-9]+){3} ([IWE]) /\1\3 /' |
+  grep -E "$pat" || true)
 if [ -n "$hits" ]; then echo "$hits"; note "no host identifiers" "FAIL"; fail=1
 else note "no host identifiers" "ok"; fi
 

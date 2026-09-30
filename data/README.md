@@ -19,7 +19,27 @@ Files are JSON Lines: one JSON object per request. Some files begin with plain
 text state lines (the GPU profile in effect, a perplexity reference); readers
 should skip lines that do not start with `{`, which is what the scripts here do.
 
-## Fields
+## September GSQ series
+
+`gsq-2026-09-{perf,mtp,profile,full-context}.jsonl` retains the original
+per-request schema as well as `load`, `prompt` and `memory` records. These
+telemetry/setup rows are not additional requests: the manifest counts only
+phases `perf` (24), `mtp` (4), `profile` (4), and `full_context` (2).
+`timings` is the server's timing object; full-context chat records keep it
+under `response`. Memory is in bytes, not MiB, and samples have a nominal
+one-second interval with no individual timestamps.
+
+`gsq-2026-09-config.json` has nine server starts under `runs`, with arguments
+and `/props` snapshots. Its `provenance` entries give original and exported
+hashes for all copied data, prompts, logs and scripts. Only home paths and
+script imports were changed. No measurement rows were discarded.
+
+See [the September report](../docs/2026-09-gsq-iq3s-vs-q4.md) for conditions
+and missing historical metadata. `python3 scripts/gsq_summary.py` checks
+counts, exported-file hashes and the main request invariants, and prints the
+reported throughput. This schema is separate from August's `measure.py`.
+
+## August fields
 
 | field | meaning |
 |---|---|

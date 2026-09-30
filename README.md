@@ -12,6 +12,7 @@ comes from one machine.
 
 | | |
 |---|---|
+| [September: GSQ IQ3_S vs Q4, including actual 254K input](docs/2026-09-gsq-iq3s-vs-q4.md) | About 4.77 GiB less VRAM, no general speedup. One cold 254K-input request completed with medium reasoning and MTP at 21.70 GiB total VRAM. Separate build and methodology from the August measurements below. |
 | [A gate that detects a bad undervolt by what the model *says*](docs/output-stability.md) | The usual check is "it didn't crash and tok/s held". Ours failed silently at -150 mV, so that check would have passed it. |
 | [2.00x from speculative decoding on a dense model](docs/speculative-decoding.md) | And why a published null result on a mixture-of-experts model of similar size is also correct. |
 | [`ngram-map-k` is invisible to single-shot benchmarks](docs/speculative-decoding.md#the-n-gram-component-only-pays-off-across-turns) | Neutral on one request, -21% wall time across a ten-turn session. |

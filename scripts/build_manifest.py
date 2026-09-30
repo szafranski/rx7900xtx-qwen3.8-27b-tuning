@@ -11,6 +11,11 @@ DATA = ROOT / "data"
 
 # file -> (experiment, configuration under test, producing script)
 EXPERIMENTS = {
+    "gsq-2026-09-perf.jsonl": ("September Q4 vs GSQ IQ3_S, 8K/26K input, three repeats per cell", "GPU profile not recorded; ctx32768, parallel1, medium, MTP+ngram", "gsq_test_models.py --phase perf"),
+    "gsq-2026-09-mtp.jsonl": ("September MTP-only compatibility, two requests per model", "GPU profile not recorded; ctx8192, parallel1, medium", "gsq_test_models.py --phase mtp"),
+    "gsq-2026-09-profile.jsonl": ("September allocated 147K context with short requests, Q4 vs GSQ", "GPU profile not recorded; ctx147456, parallel2, one active request", "gsq_test_models.py --phase profile"),
+    "gsq-2026-09-full-context.jsonl": ("September GSQ actual 139K/254K input, one request per context", "GPU profile not recorded; medium, MTP+ngram, parallel2, one active request", "gsq_full_context.py"),
+    "gsq-2026-09-config.json": ("September nine server configurations and export provenance", "Recorded args/props; historical driver and GPU profile not recorded", "gsq_test_models.py / gsq_full_context.py"),
     "spec-vs-none.jsonl":          ("Speculative decoding variants, 20K prompt", "303 W, 0 mV, auto clock", "bench-speculation.sh"),
     "spec-variants-paired.jsonl":  ("Same variants run twice, hashes compared position by position", "303 W, 0 mV, auto clock", "bench-spec-variants.sh"),
     "single-shot.jsonl":           ("Single-request decode, n-gram on and off", "272 W, -75 mV, 2200 MHz", "bench-speculation.sh"),
@@ -81,10 +86,15 @@ EXPERIMENTS = {
 # six top-level keys and 192 requests.
 RECORD_KEYS = ("runs", "cells", "cases", "items")
 
+# These files retain load and memory rows; only the named phase is a request.
+REQUEST_PHASES = {"gsq-2026-09-perf.jsonl": "perf", "gsq-2026-09-mtp.jsonl": "mtp",
+                  "gsq-2026-09-profile.jsonl": "profile", "gsq-2026-09-full-context.jsonl": "full_context"}
+
 def records(p):
     if p.suffix == ".jsonl":
         return sum(1 for l in p.open(encoding="utf-8", errors="replace")
-                   if l.strip().startswith("{"))
+                   if l.strip().startswith("{")
+                   and (p.name not in REQUEST_PHASES or json.loads(l).get("phase") == REQUEST_PHASES[p.name]))
     if p.suffix == ".json":
         try:
             o = json.loads(p.read_text(encoding="utf-8"))
